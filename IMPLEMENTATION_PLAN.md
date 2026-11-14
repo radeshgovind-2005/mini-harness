@@ -15,7 +15,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [x] eventlog: `Open(path, clock)` creating the schema, and `Append` inside a transaction that reads the tail hash and inserts (serialized so the chain cannot fork) — verify: `go test ./eventlog -run Append`
 - [x] eventlog: `Get` and `List` (by task id, ordered by id) read paths — verify: `go test ./eventlog -run Read`
 - [x] eventlog: `Verify()` walks the chain, returns the first bad event id on payload edit, deleted middle row, or rewritten hash; tests use a 100-event log with direct SQL tampering, plus the untouched-log pass case — verify: `go test ./eventlog -run Verify`
-- [ ] eventlog: concurrency test (many goroutines appending, then Verify passes with no forks) and a reflection test asserting no exported method on the log type starts with `Update` or `Delete` — verify: `go test -race ./eventlog`
+- [x] eventlog: concurrency test (many goroutines appending, then Verify passes with no forks) and a reflection test asserting no exported method on the log type starts with `Update` or `Delete` — verify: `go test -race ./eventlog`
 
 ### 2. memory
 - [ ] memory: schema and `Claim` type (subject, predicate, object, source id, source kind enum, confidence, valid_from, valid_to, recorded_at, status enum) with a `Store` that takes an eventlog and a clock, and logs every write as a memory event — verify: `go test ./memory -run Write`
