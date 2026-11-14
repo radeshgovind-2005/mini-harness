@@ -46,10 +46,5 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [ ] (Optional, last, only after everything above is checked) Real local model adapter behind the `fakemodel` Model interface, not exercised by default tests — verify: `go build ./... && go test ./...`
 
 ## Questions
-- `AGENTS.md` says tests need "no network", but `modernc.org/sqlite` must be downloaded once (`go get`). Is network allowed for that one step, or is a vendored copy / pre-populated module cache expected? Also `RALPH_ALLOWED_TOOLS` doesn't include `go get` as a separate permission; `Bash(go *)` covers it.
-- No spec defines the model interface (method names, what a "tool request" looks like). Is a minimal `Complete(ctx, messages) (Response, error)` with `Response` holding text or tool calls acceptable? It's needed by fakemodel and the optional adapter.
-- memory: "independent source (different source id AND not the same source kind chain)" is ambiguous. Proposed reading: two claims corroborate only if both source ids differ and neither claim's source derives from the other's (tracked via the source event's own provenance). Simpler alternative: differ on source id and on source kind. Which one?
-- memory: what numeric confidence values should untrusted_external claims get vs. other kinds, and what status for a fresh one: `contested` or a separate `unconfirmed`? The spec enum only lists active, superseded, contested.
-- memory/supersede: what happens when a new claim arrives for a subject+predicate whose current claim is active but the new one is untrusted_external (not yet promoted)? Proposed: it does not supersede until promoted. Confirm?
-- supervisor: should escalate and fix-the-call outcomes use dedicated event types in the log (e.g. `step.escalated`, `step.fix_the_call`)? Proposed yes. Also, what is the retry cap and base backoff default?
-- trustgate: how does an action declare which args came from tainted content (provenance per argument)? Proposed: each action arg carries a `Trusted bool`/source tag set by the caller. Confirm?
+
+All answered in `specs/decisions.md`.
