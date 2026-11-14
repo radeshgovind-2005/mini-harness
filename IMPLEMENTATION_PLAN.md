@@ -27,7 +27,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [x] fakemodel: define a small `Model` interface (see Questions) and a scripted implementation returning canned responses/tool requests in order, deterministic, no network — verify: `go test ./fakemodel`
 
 ### 4. supervisor
-- [ ] supervisor: `Task`/`Step` types, idempotency key (task id + step index/name), and the runner that skips steps with a completed checkpoint in the eventlog and records a checkpoint after each step — verify: `go test ./supervisor -run Checkpoint`
+- [x] supervisor: `Task`/`Step` types, idempotency key (task id + step index/name), and the runner that skips steps with a completed checkpoint in the eventlog and records a checkpoint after each step — verify: `go test ./supervisor -run Checkpoint`
 - [ ] supervisor: idempotent side-effect helper so a crash between effect and checkpoint does not repeat the effect (the effect checks or records the key atomically) — verify: `go test ./supervisor -run Idempotent`
 - [ ] supervisor: failure classification (retry / fix-the-call / escalate) with exponential backoff to a cap using an injectable sleeper; transient clears -> success, cap hit -> escalate; permanent -> exactly 1 attempt; fix-the-call returns a teaching error and logs it — verify: `go test ./supervisor -run Failure`
 - [ ] supervisor: worker helper binary (`cmd/worker` or TestMain re-exec) that runs a 10-step task appending a line per step to a side-effect file — verify: `go build ./... && go test ./supervisor -run Worker`
