@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"mini-harness/eventlog"
 )
@@ -39,11 +40,19 @@ func (t Task) Key(i int) string {
 type Runner struct {
 	log     *eventlog.Log
 	agentID string
+
+	// Failure policy; tests replace Sleep so backoff costs no real time.
+	MaxAttempts int
+	BaseBackoff time.Duration
+	Sleep       func(time.Duration)
 }
 
 // NewRunner returns a Runner that logs under agentID.
 func NewRunner(log *eventlog.Log, agentID string) *Runner {
-	return &Runner{log: log, agentID: agentID}
+	return &Runner{
+		log: log, agentID: agentID,
+		MaxAttempts: DefaultMaxAttempts, BaseBackoff: DefaultBaseBackoff, Sleep: time.Sleep,
+	}
 }
 
 type stepPayload struct {
@@ -98,8 +107,8 @@ func (r *Runner) Run(ctx context.Context, t Task) error {
 		if err := r.record(ctx, t, i, EventStepStarted); err != nil {
 			return err
 		}
-		if err := s.Run(ctx, t.Key(i)); err != nil {
-			return fmt.Errorf("supervisor: step %q: %w", s.Name, err)
+		if err := r.runStep(ctx, t, i); err != nil {
+			return err
 		}
 		if err := r.record(ctx, t, i, EventStepCompleted); err != nil {
 			return err
