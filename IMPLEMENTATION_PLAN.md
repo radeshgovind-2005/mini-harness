@@ -20,7 +20,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 ### 2. memory
 - [x] memory: schema and `Claim` type (subject, predicate, object, source id, source kind enum, confidence, valid_from, valid_to, recorded_at, status enum) with a `Store` that takes an eventlog and a clock, and logs every write as a memory event — verify: `go test ./memory -run Write`
 - [x] memory: supersede — a new value for the same subject+predicate closes the old claim (valid_to, status superseded); `AsOf(subject, predicate, t)` returns the historical value; test employer A then B — verify: `go test ./memory -run Supersede`
-- [ ] memory: untrusted_external claims enter low confidence with status contested (not active); normal query API never returns them as confirmed facts — verify: `go test ./memory -run Untrusted`
+- [x] memory: untrusted_external claims enter low confidence with status contested (not active); normal query API never returns them as confirmed facts — verify: `go test ./memory -run Untrusted`
 - [ ] memory: corroboration and promotion — a second independent source (different source id, different source kind chain) promotes to active and logs the promotion in the eventlog; model_inferred never corroborates; same source id never corroborates itself — verify: `go test ./memory -run Corroborat`
 
 ### 3. fakemodel
