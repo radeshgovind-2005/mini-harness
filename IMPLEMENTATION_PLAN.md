@@ -31,7 +31,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [x] supervisor: idempotent side-effect helper so a crash between effect and checkpoint does not repeat the effect (the effect checks or records the key atomically) — verify: `go test ./supervisor -run Idempotent`
 - [x] supervisor: failure classification (retry / fix-the-call / escalate) with exponential backoff to a cap using an injectable sleeper; transient clears -> success, cap hit -> escalate; permanent -> exactly 1 attempt; fix-the-call returns a teaching error and logs it — verify: `go test ./supervisor -run Failure`
 - [x] supervisor: worker helper binary (`cmd/worker` or TestMain re-exec) that runs a 10-step task appending a line per step to a side-effect file — verify: `go build ./... && go test ./supervisor -run Worker`
-- [ ] supervisor: crash test — 50 runs, SIGKILL a real child via os/exec at a random step, restart until done, assert every line appears exactly once, `t.Logf` the run and pass counts (seeded RNG so it is deterministic) — verify: `go test -v ./supervisor -run Crash`
+- [x] supervisor: crash test — 50 runs, SIGKILL a real child via os/exec at a random step, restart until done, assert every line appears exactly once, `t.Logf` the run and pass counts (seeded RNG so it is deterministic) — verify: `go test -v ./supervisor -run Crash`
 
 ### 5. trustgate
 - [ ] trustgate: `Screen` interface plus first rules/heuristic screen flagging instruction-like content, and a `Content` type carrying a tainted flag — verify: `go test ./trustgate -run Screen`
