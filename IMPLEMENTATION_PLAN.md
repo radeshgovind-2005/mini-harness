@@ -10,7 +10,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 ## Tasks
 
 ### 1. eventlog
-- [ ] Add `modernc.org/sqlite` to go.mod (`go get`) and a smoke test that opens an in-memory/temp DB via `database/sql` — verify: `go build ./... && go test ./eventlog`
+- [x] Add `modernc.org/sqlite` to go.mod (`go get`) and a smoke test that opens an in-memory/temp DB via `database/sql` — verify: `go build ./... && go test ./eventlog`
 - [ ] eventlog: `Clock` interface plus fixed/fake clock, `Event` struct (id, task id, agent id, type, JSON payload, timestamp, prev hash, hash) and a deterministic hash function over all fields incl. prev hash, with a fixed zero genesis hash — verify: `go test ./eventlog -run Hash`
 - [ ] eventlog: `Open(path, clock)` creating the schema, and `Append` inside a transaction that reads the tail hash and inserts (serialized so the chain cannot fork) — verify: `go test ./eventlog -run Append`
 - [ ] eventlog: `Get` and `List` (by task id, ordered by id) read paths — verify: `go test ./eventlog -run Read`
