@@ -41,7 +41,8 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [x] trustgate: second trivial `Screen` impl in tests proves callers swap screens with no change (callers depend only on the interface) — verify: `go test ./trustgate -run SwapScreen`
 
 ### 6. README and wrap-up
-- [ ] Run `go vet ./... && go test -v ./...` and capture the real numbers (crash runs/passes, injection outcome, supersede outcome, chain verify outcome) — verify: `go vet ./... && go test -v ./... 2>&1 | grep -E "runs|pass|PASS|FAIL"`
+- [x] Run `go vet ./... && go test -v ./...` and capture the real numbers (crash runs/passes, injection outcome, supersede outcome, chain verify outcome) — verify: `go vet ./... && go test -v ./... 2>&1 | grep -E "runs|pass|PASS|FAIL"`
+  - Captured (all packages ok): crash test `runs=50 passes=50` (TestCrashRecoveryExactlyOnce); injection: TestEmailInjectionForwardBlockedAndLogged PASS, clean summary allowed PASS, tainted recipient blocked PASS; supersede: TestSupersedeEmployerAThenB PASS; chain verify: TestVerifyIntactLog PASS, payload edit / deleted row / rewritten hash each detected (PASS), TestVerifyEditWithRecomputedHash PASS. Re-run before writing the README to confirm.
 - [ ] README.md: ASCII/mermaid architecture diagram, Results section at the top with measured numbers only, Limitations section (defense layer not a guarantee, bypassable heuristics, single-node SQLite, chain can be recomputed by a full rewriter, fake model only), Go 1.22+ and sqlite-only dep note — verify: `grep -E "^#+ (Results|Limitations)" README.md && go vet ./... && go test ./...`
 - [ ] (Optional, last, only after everything above is checked) Real local model adapter behind the `fakemodel` Model interface, not exercised by default tests — verify: `go build ./... && go test ./...`
 
