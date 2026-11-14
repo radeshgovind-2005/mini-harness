@@ -24,7 +24,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [x] memory: corroboration and promotion — a second independent source (different source id, different source kind chain) promotes to active and logs the promotion in the eventlog; model_inferred never corroborates; same source id never corroborates itself — verify: `go test ./memory -run Corroborat`
 
 ### 3. fakemodel
-- [ ] fakemodel: define a small `Model` interface (see Questions) and a scripted implementation returning canned responses/tool requests in order, deterministic, no network — verify: `go test ./fakemodel`
+- [x] fakemodel: define a small `Model` interface (see Questions) and a scripted implementation returning canned responses/tool requests in order, deterministic, no network — verify: `go test ./fakemodel`
 
 ### 4. supervisor
 - [ ] supervisor: `Task`/`Step` types, idempotency key (task id + step index/name), and the runner that skips steps with a completed checkpoint in the eventlog and records a checkpoint after each step — verify: `go test ./supervisor -run Checkpoint`
