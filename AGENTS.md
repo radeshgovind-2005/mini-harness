@@ -25,5 +25,7 @@ commit. The loop and its stop gate run it too, so a red check is never "done".
 
 ### Operational notes
 
+- Worker binary: `cmd/worker` (flags `-db -effects -pause-at N`); tests build it with `go build -o` and SIGKILL it.
+
 <!-- The agent adds one-line learnings here, e.g. "Tests need DB_URL=sqlite::memory:" -->
 <!-- ralph:end -->
