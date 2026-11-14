@@ -6,6 +6,10 @@ fake model, so everything runs offline and deterministically.
 
 Requires Go 1.22+. Single module; the only dependency is `modernc.org/sqlite` (pure Go, no cgo).
 
+![Demo: crash recovery, tamper evidence, injection blocked, supersede](docs/demo.gif)
+
+The GIF is real output from `cmd/worker` and `cmd/demo` (scripted fake model, offline). Regenerate it with `python3 docs/make_demo.py`.
+
 ## Results
 
 Measured from `go vet ./... && go test -v -count=1 ./...` (all packages `ok`):
