@@ -92,7 +92,7 @@ func (s *Store) Write(ctx context.Context, c Claim) (Claim, error) {
 	// Contested claims never supersede anything: they are not facts yet.
 	var closed []int64
 	if c.Status == Active {
-		if closed, err = closeOpenClaims(ctx, tx, c); err != nil {
+		if closed, err = closeOpenClaims(ctx, tx, c, true); err != nil {
 			return Claim{}, err
 		}
 	}
@@ -105,6 +105,10 @@ func (s *Store) Write(ctx context.Context, c Claim) (Claim, error) {
 		return Claim{}, fmt.Errorf("memory: insert: %w", err)
 	}
 	if c.ID, err = res.LastInsertId(); err != nil {
+		return Claim{}, err
+	}
+	promoted, err := promoteCorroborated(ctx, tx, c)
+	if err != nil {
 		return Claim{}, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -122,15 +126,98 @@ func (s *Store) Write(ctx context.Context, c Claim) (Claim, error) {
 	if err := s.logEvent(ctx, "memory.write", c); err != nil {
 		return Claim{}, err
 	}
+	for _, id := range promoted {
+		p, err := s.Get(ctx, id)
+		if err != nil {
+			return Claim{}, err
+		}
+		if err := s.logEvent(ctx, "memory.promote", p); err != nil {
+			return Claim{}, err
+		}
+		if id == c.ID {
+			c = p
+		}
+	}
 	return c, nil
+}
+
+// promoteCorroborated promotes contested claims that the new claim c has just made
+// corroborated. Two claims corroborate when they agree on subject, predicate and
+// object, come from different source ids, and the corroborating one is not
+// model_inferred. "Independent" is only approximated by distinct source ids.
+// It returns the ids it promoted.
+func promoteCorroborated(ctx context.Context, tx *sql.Tx, c Claim) ([]int64, error) {
+	rows, err := tx.QueryContext(ctx,
+		`SELECT id, source_id, source_kind, status FROM claims
+		 WHERE subject = ? AND predicate = ? AND object = ? AND status IN (?, ?)`,
+		c.Subject, c.Predicate, c.Object, string(Active), string(Contested))
+	if err != nil {
+		return nil, err
+	}
+	var group []Claim
+	for rows.Next() {
+		var m Claim
+		var kind, status string
+		if err := rows.Scan(&m.ID, &m.SourceID, &kind, &status); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		m.SourceKind, m.Status = SourceKind(kind), Status(status)
+		group = append(group, m)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var promoted []int64
+	for _, x := range group {
+		if x.Status != Contested || !hasCorroborator(group, x) {
+			continue
+		}
+		if err := promote(ctx, tx, x.ID, c); err != nil {
+			return nil, err
+		}
+		promoted = append(promoted, x.ID)
+	}
+	return promoted, nil
+}
+
+// hasCorroborator reports whether another claim in the group backs x.
+func hasCorroborator(group []Claim, x Claim) bool {
+	for _, y := range group {
+		if y.ID != x.ID && y.SourceID != x.SourceID && y.SourceKind != ModelInferred {
+			return true
+		}
+	}
+	return false
+}
+
+// promote turns a contested claim into an active one and closes any open claim
+// that holds a different value for the same subject+predicate. same carries the
+// subject, predicate and object of the group.
+func promote(ctx context.Context, tx *sql.Tx, id int64, same Claim) error {
+	var from int64
+	if err := tx.QueryRowContext(ctx, `SELECT valid_from FROM claims WHERE id = ?`, id).Scan(&from); err != nil {
+		return err
+	}
+	same.ValidFrom = time.Unix(0, from).UTC()
+	if _, err := closeOpenClaims(ctx, tx, same, false); err != nil {
+		return err
+	}
+	_, err := tx.ExecContext(ctx,
+		`UPDATE claims SET status = ?, confidence = ? WHERE id = ?`,
+		string(Active), PromotedConfidence, id)
+	return err
 }
 
 // closeOpenClaims marks active claims for the same subject+predicate as superseded,
 // ending them where the new claim begins. It returns the ids it closed.
-func closeOpenClaims(ctx context.Context, tx *sql.Tx, c Claim) ([]int64, error) {
+// With sameObjectToo false, claims already holding c.Object are left open.
+func closeOpenClaims(ctx context.Context, tx *sql.Tx, c Claim, sameObjectToo bool) ([]int64, error) {
 	rows, err := tx.QueryContext(ctx,
-		`SELECT id FROM claims WHERE subject = ? AND predicate = ? AND status = ?`,
-		c.Subject, c.Predicate, string(Active))
+		`SELECT id FROM claims WHERE subject = ? AND predicate = ? AND status = ? AND (? OR object <> ?)`,
+		c.Subject, c.Predicate, string(Active), sameObjectToo, c.Object)
 	if err != nil {
 		return nil, err
 	}
