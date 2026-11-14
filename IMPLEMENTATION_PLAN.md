@@ -14,7 +14,7 @@ Dependency order: eventlog -> memory / supervisor -> fakemodel -> trustgate -> R
 - [x] eventlog: `Clock` interface plus fixed/fake clock, `Event` struct (id, task id, agent id, type, JSON payload, timestamp, prev hash, hash) and a deterministic hash function over all fields incl. prev hash, with a fixed zero genesis hash — verify: `go test ./eventlog -run Hash`
 - [x] eventlog: `Open(path, clock)` creating the schema, and `Append` inside a transaction that reads the tail hash and inserts (serialized so the chain cannot fork) — verify: `go test ./eventlog -run Append`
 - [x] eventlog: `Get` and `List` (by task id, ordered by id) read paths — verify: `go test ./eventlog -run Read`
-- [ ] eventlog: `Verify()` walks the chain, returns the first bad event id on payload edit, deleted middle row, or rewritten hash; tests use a 100-event log with direct SQL tampering, plus the untouched-log pass case — verify: `go test ./eventlog -run Verify`
+- [x] eventlog: `Verify()` walks the chain, returns the first bad event id on payload edit, deleted middle row, or rewritten hash; tests use a 100-event log with direct SQL tampering, plus the untouched-log pass case — verify: `go test ./eventlog -run Verify`
 - [ ] eventlog: concurrency test (many goroutines appending, then Verify passes with no forks) and a reflection test asserting no exported method on the log type starts with `Update` or `Delete` — verify: `go test -race ./eventlog`
 
 ### 2. memory
