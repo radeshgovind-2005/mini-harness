@@ -29,7 +29,7 @@ const (
 	Exec    ActionKind = "exec"    // destructive
 )
 
-func (k ActionKind) outbound() bool { return k == Send || k == Forward || k == Share }
+func (k ActionKind) outbound() bool    { return k == Send || k == Forward || k == Share }
 func (k ActionKind) destructive() bool { return k == Delete || k == Exec }
 
 // Arg is one argument of an action and whether its value came from tainted content.
